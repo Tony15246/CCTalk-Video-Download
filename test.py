@@ -109,7 +109,7 @@ def download_movies(cookie, movie_list):
         block_size = 1024  # 每次读取的块大小（1KB）
 
         os.makedirs("./data/", exist_ok=True)
-        with open("./data/" + movie["name"] + ".mp4", "wb") as f, tqdm(
+        with open(f"./data/{index + 1}. {movie["name"]}.mp4", "wb") as f, tqdm(
             desc=movie["name"],
             total=total_size,
             unit="iB",
