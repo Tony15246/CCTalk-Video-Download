@@ -41,13 +41,13 @@ def get_group_list(cookie):
     url = "https://m.cctalk.com/webapi/content/v1.1/user/my_group_list"
     response = requests.get(url, headers=headers, timeout=5)
     data = response.json()
-    item_list = []
-    for item in data["data"]["items"]:
-        group_id = item["groupId"]
-        group_name = item["groupName"]
-        item_dict = {"id": group_id, "name": group_name}
-        item_list.append(item_dict)
-    return item_list
+    group_list = []
+    for group in data["data"]["items"]:
+        group_id = group["groupId"]
+        group_name = group["groupName"]
+        group_dict = {"id": group_id, "name": group_name}
+        group_list.append(group_dict)
+    return group_list
 
 
 def get_series_list(cookie, group_id):
@@ -97,7 +97,7 @@ def get_download_url(cookie, movie_id):
     return response.json()["data"]["videoUrl"]
 
 
-def download_movies(cookie, movie_list):
+def download_movies(cookie, movie_list, series_name):
     for index, movie in enumerate(movie_list):
         download_url = get_download_url(cookie, movie["id"])
         print(
@@ -108,8 +108,8 @@ def download_movies(cookie, movie_list):
         total_size = int(response.headers.get("content-length", 0))  # 获取文件总大小
         block_size = 1024  # 每次读取的块大小（1KB）
 
-        os.makedirs("./data/", exist_ok=True)
-        with open(f"./data/{index + 1}. {movie["name"]}.mp4", "wb") as f, tqdm(
+        os.makedirs(f"./{series_name}/", exist_ok=True)
+        with open(f"./{series_name}/{index + 1}. {movie["name"]}.mp4", "wb") as f, tqdm(
             desc=movie["name"],
             total=total_size,
             unit="iB",
@@ -127,15 +127,16 @@ if __name__ == "__main__":
     with open("config.json", "r", encoding="utf8") as file:
         config = json.load(file)
     cookie = get_cookie(config["phone"], config["password"])
-    item_list = get_group_list(cookie)
-    for index, item in enumerate(item_list):
-        print(f"Index: {index}, ID: {item['id']}, Name: {item['name']}")
+    group_list = get_group_list(cookie)
+    for index, group in enumerate(group_list):
+        print(f"Index: {index}, ID: {group['id']}, Name: {group['name']}")
     lesson_index = int(input("选择课程: "))
-    group_id = item_list[lesson_index]["id"]
+    group_id = group_list[lesson_index]["id"]
     series_list = get_series_list(cookie, group_id)
     for index, series in enumerate(series_list):
         print(f"Index: {index}, ID: {series['id']}, Name: {series['name']}")
     series_index = int(input("选择课程: "))
     series_id = series_list[series_index]["id"]
+    series_name = series_list[series_index]["name"]
     movie_list = get_movie_list(cookie, series_id)
-    download_movies(cookie, movie_list)
+    download_movies(cookie, movie_list, series_name)
